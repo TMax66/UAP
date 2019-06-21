@@ -9,6 +9,7 @@ shinyUI(fluidPage(h2("Demo -  'rhandsontable' package and a simple example app w
                   h4("# simulate formula in editable rhandson data table"),
                
 fluidRow(column(4, rHandsontableOutput('table'), actionButton("saveBtn", "Save"), offset = 2),
+         column(4, textOutput("prova")),
 column(4,plotlyOutput("plot") , offset = 2))
   
   ))

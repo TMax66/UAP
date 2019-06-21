@@ -4,11 +4,14 @@ shinyServer(function(output,input, session){
   
 ## Creating a dataset with 3 column variables. Column C is sum of columns a and b.
 ## we will use this dataset to begin with and simulate formulas in editable rhandson data table
-  a=sample(1:20, replace=T)
-  b=sample(1:20, replace=T)
-  c=a+b
-  df = data.frame(a=a, b=b, c=c)
+ # a=sample(1:20, replace=T)
+#  b=sample(1:20, replace=T)
+ # c=a+b
+#df = data.frame(a=a, b=b, c=c)
   
+  ICQ_VL1 <- rep(0, 20)
+  ICQ_VL2<-rep(0, 20)
+  df = data.frame(ICQ_VL1,ICQ_VL2)
 ## Defining a reactivevalues object so that whenever dataset value changes it affects everywhere in the scope of every reactive function
   datavalues <- reactiveValues(data=df)
   
@@ -36,14 +39,36 @@ shinyServer(function(output,input, session){
       # Calculating the cell value of column C using cell values in column a and b
       # 1 is added to row index because change event row and column indices starts with zero vs R index which starts with 1
       
-      datavalues$data[xi+1,3] = datavalues$data[xi+1,1] + datavalues$data[xi+1,2] # calculate column varibale C values based on cell values in column variable a and b
+      #datavalues$data[xi+1,3] = datavalues$data[xi+1,1] + datavalues$data[xi+1,2] # calculate column varibale C values based on cell values in column variable a and b
      
+    
+      
       }
     )
   
   ## plot a histogram using plotly
   ## plotly graph also changes as the table cell values changes
-  output$plot <- renderPlotly({
+ 
+  output$summary<-renderTable({   
+    tm_lv1<-input$m1
+    tm_lv2<-input$m2
+    
+    
+  mean1<-mean(datavalues$data$ICQ_VL1)
+  mean2<-mean(datavalues$data$ICQ_VL2)
+  sd1<-sd(datavalues$data$ICQ_VL1)
+  sd2<-sd(datavalues$data$ICQ_VL2)
+  cv1<-
+  
+  
+  })
+  
+
+  
+  
+  
+  
+   output$plot <- renderPlotly({
         plot_ly(data=datavalues$data, x=~c, type="histogram")
   })
   
