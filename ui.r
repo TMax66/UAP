@@ -5,12 +5,42 @@ library(shiny)
 library(plotly)
 library(rhandsontable)
 
-shinyUI(fluidPage(h2("Demo -  'rhandsontable' package and a simple example app with Shiny"),
-                  h4("# simulate formula in editable rhandson data table"),
-               
-fluidRow(column(4, rHandsontableOutput('table'), actionButton("saveBtn", "Save"), offset = 2),
-         column(4, textOutput("prova")),
-column(4,plotlyOutput("plot") , offset = 2))
+ui <- fluidPage(
   
-  ))
+  # Application title
+  titlePanel("Unit Analytic Performances"),
+  
+  ######## Sidebar with a slider input for number of bins######
+  sidebarLayout(
+          sidebarPanel(
+            
+            numericInput("m1", "Mean Target LV1", value=0),
+            numericInput("m2", "Mean Target LV2", value=0),
+            
+            rHandsontableOutput('table')
+                      ),
+
+          mainPanel("",
+            fluidPage(
+            tableOutput("summary")
+          )
+          )
+  )
+)
+
+
+
+
+
+
+
+  
+
+# shinyUI(fluidPage(h2("Demo - Unit Analytic Performances"),
+#                
+# fluidRow(column(4, rHandsontableOutput('table'), offset = 2),
+#          column(4, tableOutput("summary")),
+# column(4,plotlyOutput("plot") , offset = 2))
+#   
+#   ))
 
