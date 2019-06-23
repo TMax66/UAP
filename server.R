@@ -9,9 +9,16 @@ shinyServer(function(output,input, session){
  # c=a+b
 #df = data.frame(a=a, b=b, c=c)
   
+  ta<-read.csv("ta.csv")
   ICQ_VL1 <- rep(0, 20)
   ICQ_VL2<-rep(0, 20)
   df = data.frame(ICQ_VL1,ICQ_VL2)
+  
+  ta2<-reactive(ta %>% 
+                mutate(ta2=Ta/2,
+                       ta3=Ta/3,
+                       ta4=Ta/4) %>% 
+                filter(analita==input$analita,LV==input$lv))
 ## Defining a reactivevalues object so that whenever dataset value changes it affects everywhere in the scope of every reactive function
   datavalues <- reactiveValues(data=df)
   
@@ -30,6 +37,7 @@ shinyServer(function(output,input, session){
   # Watching any changes made to table cells in column variables a or b and then update column c based on formula
   
   observeEvent(
+    
     input$table$changes$changes, # observe if any changes to the cells of the rhandontable
     {
       
@@ -68,7 +76,8 @@ shinyServer(function(output,input, session){
   tt<-cbind("VL2",refm2,mean2, sd2,cv2,bias2)
   tt2<-rbind(t,tt)
   ttx<-as.data.frame(tt2)
-  #names(ttx)<-c("LV", "refMean", "TargetMean", "SD", "CV")
+  names(ttx)<-c("LV", "refMean", "TargetMean", "SD", "CV","Bias")
+  ttt<-ttx
   })
   
 
@@ -76,19 +85,26 @@ shinyServer(function(output,input, session){
   
   
   
-   output$plot <- renderPlotly({
-        plot_ly(data=datavalues$data, x=~c, type="histogram")
+   output$MEDx <- renderPlot({
+     d=data.frame(x=0:ta2()$Ta, y=c(0:ta2()$Ta))
+     ggplot(data=d, mapping=aes(x=x, y=y)) +
+       geom_blank() +
+       geom_segment(aes(x=0,xend=ta2()$ta2,y=ta2()$Ta,yend=0),color='red', linetype=1,size=0.2)+
+       geom_segment(aes(x=0,xend=ta2()$ta3,y=ta2()$Ta,yend=0), color='blue', linetype=1,size=0.2)+
+       geom_segment(aes(x=0,xend=ta2()$ta4,y=ta2()$Ta,yend=0),color='green', linetype=1,size=0.2)+
+       labs(x="Precision", y="Bias")#+geom_point(aes(x=1.6, y=3.9), colour="blue")
+     
   })
   
   
   ## Save the changed data table to local 
   ## create the save function
-  saveData <- function(){
-    write.csv(datavalues$data, file = "MyData.csv", row.names = FALSE)
-  }
+  #saveData <- function(){
+   # write.csv(datavalues$data, file = "MyData.csv", row.names = FALSE)
+  #}
 
   ## on save button click event, dataset will be saved to working directory
-  observeEvent(input$saveBtn, saveData())
+ # observeEvent(input$saveBtn, saveData())
   
 }
 )

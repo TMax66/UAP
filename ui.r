@@ -14,6 +14,13 @@ ui <- fluidPage(
   sidebarLayout(
           sidebarPanel(
             
+            selectInput("analita",label="Select analyte:",
+            choices=list("Albumin", "ALP", "ALT","Amyase"),selected = ""),
+            
+            radioButtons("lv", "select LV:",
+                         c("LV1" = 1,
+                           "LV2" = 2)),
+            
             numericInput("m1", "Mean Target LV1", value=0),
             numericInput("m2", "Mean Target LV2", value=0),
             
@@ -22,7 +29,10 @@ ui <- fluidPage(
 
           mainPanel("",
             fluidPage(
-            tableOutput("summary")
+            tableOutput("summary"),
+            hr(),
+            br(),
+            plotOutput("MEDx")
           )
           )
   )
