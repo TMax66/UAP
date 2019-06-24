@@ -1,13 +1,8 @@
 library(shiny)
+library(tidyverse)
 
 shinyServer(function(output,input, session){
-  
-## Creating a dataset with 3 column variables. Column C is sum of columns a and b.
-## we will use this dataset to begin with and simulate formulas in editable rhandson data table
- # a=sample(1:20, replace=T)
-#  b=sample(1:20, replace=T)
- # c=a+b
-#df = data.frame(a=a, b=b, c=c)
+
   
   ta<-read.csv("ta.csv")
   ICQ_VL1 <- rep(0, 20)
@@ -17,94 +12,102 @@ shinyServer(function(output,input, session){
   ta2<-reactive(ta %>% 
                 mutate(ta2=Ta/2,
                        ta3=Ta/3,
-                       ta4=Ta/4) %>% 
-                filter(analita==input$analita,LV==input$lv))
+                       ta4=Ta/4,
+                       sl1=(Ta-0)/(0-ta4),
+                       sl2=(Ta-0)/(0-ta3),
+                       sl3=(Ta-0)/(0-ta2)) %>% 
+                filter(analita==input$analita))
 ## Defining a reactivevalues object so that whenever dataset value changes it affects everywhere in the scope of every reactive function
-  datavalues <- reactiveValues(data=df)
+datavalues <- reactiveValues(data=df)
   
-  # Display the data using renderRHandsontable() function
-  # It will display the data frame that was initialized in the reactiveValues()
-  # This will display data in a excel like editable cells
-
   
-  output$table <- renderRHandsontable({
+output$table <- renderRHandsontable({
    rhandsontable(datavalues$data)
   
   })
-  
-
-  
-  # Watching any changes made to table cells in column variables a or b and then update column c based on formula
-  
-  observeEvent(
+observeEvent(
     
     input$table$changes$changes, # observe if any changes to the cells of the rhandontable
     {
-      
-      xi=input$table$changes$changes[[1]][[1]] # capture the row which is changed
-      datavalues$data <- hot_to_r(input$table) # convert the rhandontable to R data frame object so manupilation / calculations could be done
-      
-      # Calculating the cell value of column C using cell values in column a and b
-      # 1 is added to row index because change event row and column indices starts with zero vs R index which starts with 1
-      
-      #datavalues$data[xi+1,3] = datavalues$data[xi+1,1] + datavalues$data[xi+1,2] # calculate column varibale C values based on cell values in column variable a and b
-     
-    
-      
+      xi=input$table$changes$changes[[1]][[1]] 
+      datavalues$data <- hot_to_r(input$table) 
+
       }
     )
-  
-  ## plot a histogram using plotly
-  ## plotly graph also changes as the table cell values changes
- 
-  output$summary<-renderTable({   
-    tm_lv1<-input$m1
-    tm_lv2<-input$m2
-    
-  refm1<-input$m1
-  refm2<-input$m2
-  mean1<-mean(datavalues$data$ICQ_VL1)
-  mean2<-mean(datavalues$data$ICQ_VL2)
-  sd1<-sd(datavalues$data$ICQ_VL1)
-  sd2<-sd(datavalues$data$ICQ_VL2)
-  cv1<-100*(sd1/mean1)
-  cv2<-100*(sd2/mean2)
-  bias1<-(mean1-refm1)/refm1
-  bias2<-(mean2-refm2)/refm2
-  
-  t<-cbind("VL1",refm1,mean1, sd1,cv1, bias1)
-  tt<-cbind("VL2",refm2,mean2, sd2,cv2,bias2)
-  tt2<-rbind(t,tt)
-  ttx<-as.data.frame(tt2)
-  names(ttx)<-c("LV", "refMean", "TargetMean", "SD", "CV","Bias")
-  ttt<-ttx
-  })
-  
+ttx<-reactive({
+              tm_lv1<-input$m1
+              tm_lv2<-input$m2
+              refm1<-input$m1
+              refm2<-input$m2
+              sdref1<-input$sd1
+              sdref2<-input$sd2
+              mean1<-mean(datavalues$data$ICQ_VL1)
+              mean2<-mean(datavalues$data$ICQ_VL2)
+              sd1<-sd(datavalues$data$ICQ_VL1)
+              sd2<-sd(datavalues$data$ICQ_VL2)
+              cv1<-100*(sd1/mean1)
+              cv2<-100*(sd2/mean2)
+              bias1<-100*(mean1-refm1)/refm1
+              bias2<-100*(mean2-refm2)/refm2
+              teobs1<-abs(bias1)+2*cv1
+              teobs2<-abs(bias1)+2*cv1
+              sigma1<-(ta2()$Ta[1]-bias1)/cv1 
+              sigma2<-(ta2()$Ta[2]-bias2)/cv2
+              qgi1<-abs(bias1)/1.5*cv1
+              qgi2<-abs(bias2)/1.5*cv2
+              slope1<-(ta2()$Ta[1]-abs(bias1))/(0-cv1)
+              slope2<-(ta2()$Ta[2]-abs(bias2))/(0-cv2)
+              ttx<-rbind(tibble( "Level"="IQC LV1","refMean"=refm1, "MEAN"=mean1, 
+                                 "SD"=sd1, "CV"=cv1, "BIAS"=bias1,"TEobs95%"=teobs1,"Sigma"=sigma1,
+                                 "QGI"=qgi1, "Slope"=slope1),
+                         tibble( "Level"="IQC LV2","refMean"=refm2, "MEAN"=mean2, 
+                                 "SD"=sd2, "CV"=cv2, "BIAS"=bias2,"TEobs95%"=teobs2,"Sigma"=sigma2,
+                                 "QGI"=qgi2, "Slope"=slope2)
+              )})
 
-  
-  
-  
-  
-   output$MEDx <- renderPlot({
-     d=data.frame(x=0:ta2()$Ta, y=c(0:ta2()$Ta))
+observeEvent(input$go, {   
+output$summary<-renderTable({   
+    ttx() }, type = "html",
+    bordered = TRUE, striped = TRUE, align = "c", width = NULL, digits=2)
+
+output$MEDx1 <- renderPlot({
+     d=data.frame(x=0:ta2()$Ta[1], y=c(0:ta2()$Ta[1]))
      ggplot(data=d, mapping=aes(x=x, y=y)) +
        geom_blank() +
-       geom_segment(aes(x=0,xend=ta2()$ta2,y=ta2()$Ta,yend=0),color='red', linetype=1,size=0.2)+
-       geom_segment(aes(x=0,xend=ta2()$ta3,y=ta2()$Ta,yend=0), color='blue', linetype=1,size=0.2)+
-       geom_segment(aes(x=0,xend=ta2()$ta4,y=ta2()$Ta,yend=0),color='green', linetype=1,size=0.2)+
-       labs(x="Precision", y="Bias")#+geom_point(aes(x=1.6, y=3.9), colour="blue")
+       geom_segment(aes(x=0,xend=ta2()$ta2[1],y=ta2()$Ta[1],yend=0),color='red', linetype=1,size=0.2)+
+       geom_segment(aes(x=0,xend=ta2()$ta3[1],y=ta2()$Ta[1],yend=0), color='blue', linetype=1,size=0.2)+
+       geom_segment(aes(x=0,xend=ta2()$ta4[1],y=ta2()$Ta[1],yend=0),color='green', linetype=1,size=0.2)+
+       labs(x="Precision", y="Bias", title = "Analyte IQC 1 MEDx Chart")+
+       geom_point(aes(x=ttx()$CV[1], y=ttx()$BIAS[1]), colour="blue", size=3)
      
   })
-  
-  
-  ## Save the changed data table to local 
-  ## create the save function
-  #saveData <- function(){
-   # write.csv(datavalues$data, file = "MyData.csv", row.names = FALSE)
-  #}
+output$MEDx2 <- renderPlot({
+     d=data.frame(x=0:ta2()$Ta[2], y=c(0:ta2()$Ta[2]))
+     ggplot(data=d, mapping=aes(x=x, y=y)) +
+       geom_blank() +
+       geom_segment(aes(x=0,xend=ta2()$ta2[2],y=ta2()$Ta[2],yend=0),color='red', linetype=1,size=0.2)+
+       geom_segment(aes(x=0,xend=ta2()$ta3[2],y=ta2()$Ta[2],yend=0), color='blue', linetype=1,size=0.2)+
+       geom_segment(aes(x=0,xend=ta2()$ta4[2],y=ta2()$Ta[2],yend=0),color='green', linetype=1,size=0.2)+
+       labs(x="Precision", y="Bias", title = "Analyte IQC 2 MEDx Chart")+
+       geom_point(aes(x=ttx()$CV[2], y=ttx()$BIAS[2]), colour="blue",size =3)
+     
+   })
 
-  ## on save button click event, dataset will be saved to working directory
- # observeEvent(input$saveBtn, saveData())
+output$perform <- renderText({ 
   
+  if (ttx()$Slope[1]<ta2()$sl1)
+  {"Excellence Performance"}
+    if (ttx()$Slope[1]<ta2()$sl2)
+    {"Good Performance"}
+      if (ttx()$Slope[1]<ta2()$sl3)
+      {"Marginal Performance"}
+  else
+  {"Poor Performance"}
+})
+}
+
+
+
+)
 }
 )
