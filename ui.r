@@ -8,11 +8,19 @@ library(rhandsontable)
 ui <- fluidPage(
   
   # Application title
-  titlePanel("Unit Analytic Performances"),
+  titlePanel(""),
+  
   
   ######## Sidebar with a slider input for number of bins######
   sidebarLayout(
           sidebarPanel(
+            div(align="center",
+                tags$img(src="logo.png",width = "200px", height = "50px")),
+            
+            div(align="center",
+            h3("Unit Analytic Performances")),
+            
+            
             
             selectInput("analita",label="Select analyte:",
             choices=list("Albumin", "ALP", "ALT","Amyase"),selected = ""),
@@ -28,7 +36,10 @@ ui <- fluidPage(
             numericInput("sd2", "SD Target LV2", value=0), 
             rHandsontableOutput('table'),
             hr(),
-            actionButton(inputId="go", label="Show Performances")
+            actionButton(inputId="go", label="Show Performances"),
+            
+            actionButton('switchtab',"Reset"),
+            textOutput('code_ran')
                       ),
 
           mainPanel(
@@ -40,9 +51,10 @@ ui <- fluidPage(
             hr(),
             br(),
             plotOutput("MEDx1"),
-            textOutput("perform"),
+            span(textOutput("perform"),style="color:red"),
             hr(),
-            plotOutput("MEDx2")
+            plotOutput("MEDx2"),
+            span(textOutput("perform2"), style="color:red")
           )
               )
           
