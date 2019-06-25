@@ -23,11 +23,9 @@ ui <- fluidPage(
             
             
             selectInput("analita",label="Select analyte:",
-            choices=list("Albumin", "ALP", "ALT","Amyase"),selected = ""),
+            choices=list("Albumin", "ALP", "ALT"),selected = ""),
             
-            #radioButtons("lv", "select LV:",
-                        # c("LV1" = 1,
-                        #  "LV2" = 2)),
+       
             
             numericInput("m1", "Mean Target LV1", value=0),
             numericInput("sd1", "SD Target LV1", value=0), 
@@ -43,24 +41,19 @@ ui <- fluidPage(
                       ),
 
           mainPanel(
-            #conditionalPanel( 
-             # condition="input.go==1",
           
             fluidPage(
             tableOutput("summary"),
-            hr(),
             br(),
             plotOutput("MEDx1"),
-            span(textOutput("perform"),style="color:red"),
-            hr(),
+            span(h3(textOutput("perform")),style="color:red", align="center"),
             plotOutput("MEDx2"),
-            span(textOutput("perform2"), style="color:red")
+            span(h3(textOutput("perform2")), style="color:red", align="center")
           )
               )
           
           )
   )
-#)
 
 
 
@@ -69,13 +62,6 @@ ui <- fluidPage(
 
 
 
-  
 
-# shinyUI(fluidPage(h2("Demo - Unit Analytic Performances"),
-#                
-# fluidRow(column(4, rHandsontableOutput('table'), offset = 2),
-#          column(4, tableOutput("summary")),
-# column(4,plotlyOutput("plot") , offset = 2))
-#   
-#   ))
+
 

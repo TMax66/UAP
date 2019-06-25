@@ -21,8 +21,8 @@ shinyServer(function(output,input, session){
 
   
   ta<-read.csv("ta.csv")
-  ICQ_VL1 <- rep(0, 20)
-  ICQ_VL2<-rep(0, 20)
+  ICQ_VL1 <- rep(0.0, 20)
+  ICQ_VL2<-rep(0.0, 20)
   df = data.frame(ICQ_VL1,ICQ_VL2)
   
   ta2<-reactive(ta %>% 
@@ -38,7 +38,10 @@ datavalues <- reactiveValues(data=df)
   
   
 output$table <- renderRHandsontable({
-   rhandsontable(datavalues$data)
+   rhandsontable(datavalues$data) %>% 
+  hot_cols(format = "0.00")
+   
+    
   
   })
 observeEvent(
