@@ -51,5 +51,14 @@ ggplot(data=d, mapping=aes(x=x, y=y)) +
   geom_segment(aes(x=0,xend=z$ta4[1],y=z$Ta[1],yend=0),color='green', linetype=1,size=0.2)+
 labs(x="Precision", y="Bias")+geom_point(aes(x=1.6, y=3.9), colour="blue")
 
+ta<-data.frame( "Ta"=c(15, 20))
+
+ta2<-ta %>% 
+        mutate(ta2=Ta/2,
+                       ta3=Ta/3,
+                       ta4=Ta/4,
+                       sl1=(Ta-0)/(0-ta4),
+                       sl2=(Ta-0)/(0-ta3),
+                       sl3=(Ta-0)/(0-ta2))
 
 

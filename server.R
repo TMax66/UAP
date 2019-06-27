@@ -20,19 +20,18 @@ shinyServer(function(output,input, session){
   })
 
   
-  ta<-read.csv("ta.csv")
+  ta<-reactive(data.frame("Ta"=c(input$ta1, input$ta2)))
   ICQ_VL1 <- rep(0.0, 20)
   ICQ_VL2<-rep(0.0, 20)
   df = data.frame(ICQ_VL1,ICQ_VL2)
   
-  ta2<-reactive(ta %>% 
+  ta2<-reactive(ta() %>% 
                 mutate(ta2=Ta/2,
                        ta3=Ta/3,
                        ta4=Ta/4,
                        sl1=(Ta-0)/(0-ta4),
                        sl2=(Ta-0)/(0-ta3),
-                       sl3=(Ta-0)/(0-ta2)) %>% 
-                filter(analita==input$analita))
+                       sl3=(Ta-0)/(0-ta2)))
 ## Defining a reactivevalues object so that whenever dataset value changes it affects everywhere in the scope of every reactive function
 datavalues <- reactiveValues(data=df)
   
@@ -96,7 +95,14 @@ output$MEDx1 <- renderPlot({
        geom_segment(aes(x=0,xend=ta2()$ta2[1],y=ta2()$Ta[1],yend=0),color='red', linetype=1,size=0.2)+
        geom_segment(aes(x=0,xend=ta2()$ta3[1],y=ta2()$Ta[1],yend=0), color='blue', linetype=1,size=0.2)+
        geom_segment(aes(x=0,xend=ta2()$ta4[1],y=ta2()$Ta[1],yend=0),color='green', linetype=1,size=0.2)+
-       labs(x="Precision", y="Bias", title = "Analyte IQC 1 MEDx Chart")+
+       labs(x="Precision", y="Bias", 
+            title = input$analite,
+            subtitle = "Analyte IQC 2 MEDx Chart")+
+     
+     theme(
+       plot.title = element_text(color = "blue", size = 12, face = "bold"),
+       plot.subtitle = element_text(color = "red"))+
+    
        geom_point(aes(x=ttx()$CV[1], y=abs(ttx()$BIAS[1])), colour="blue", size=3)
      
   })
@@ -136,12 +142,7 @@ output$perform2 <- renderText({
   {"Poor Performance"}
 })
 
-
-
 }
-
-
-
 )
 }
 )
